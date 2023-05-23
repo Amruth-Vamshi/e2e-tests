@@ -22,6 +22,14 @@
     "webpack-glob-entries": "^1.0.1"
   },
   "scripts": {
-    "start": "webpack"
+    "start": "webpack",
+    "test:flow-1": "ts-node src/e2e/flow-1.ts",
+    "test:socket-connections": "ts-node src/e2e/socket-connections.ts"
+  },
+  "dependencies": {
+    "dotenv-webpack": "^8.0.1",
+    "ml-matrix": "^6.10.4",
+    "socket.io-client": "^4.6.1",
+    "uuid": "^9.0.0"
   }
 }

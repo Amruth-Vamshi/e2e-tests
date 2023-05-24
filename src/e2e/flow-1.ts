@@ -26,11 +26,15 @@ const walk = async (userSocket: UserSocket, userCount: number) => {
         let result = await walker.walk("A[When should I sow paddy in Kharif? : Paddy is sown between the months June-July ]");
         result['totalTimeTaken'] = result.pathTaken.reduce((sum: number, path: any) => sum + path.timeTaken, 0);
         result['averageTimeTaken'] = result['totalTimeTaken'] / result.pathTaken.length;
+        result['totalPositveResponse'] = result.pathTaken.reduce((sum: number, path: any) => sum + (path.similarityResult == "Positive"? 1 : 0), 0);
+        result['totalNegativeResponse'] = result.pathTaken.length - result['totalPositveResponse']
         result['userId'] = userSocket.deviceId
         finalResult.userFlows.push(result)
         if(finalResult.userFlows.length == userCount) {
             let additionalParams: any = {
-                totalTimeTaken: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalTimeTaken, 0)
+                totalTimeTaken: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalTimeTaken, 0),
+                totalPositiveResponse: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalPositveResponse, 0),
+                totalNegativeResponse: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalNegativeResponse, 0)
             }
             additionalParams['averageTimeTaken'] = additionalParams['totalTimeTaken'] / finalResult.userFlows.length;
             additionalParams['totalTimeTaken'] = `${additionalParams['totalTimeTaken']/1000} sec`
@@ -56,10 +60,10 @@ const walk = async (userSocket: UserSocket, userCount: number) => {
 }
 
 (async () => {
-    let userCount = 100
+    let userCount = 10
     for(let i=1;i<=userCount;i++){
-        let data = await createUser(`tester${i}@amakrushi.ai`,`tester-amakrushi-${i}`)
-        if(!data) {console.error('unable to create user', `tester${i}@amakrushi.ai`); continue;}
+        let data = await createUser(`tester_${i}@amakrushi.ai`,`tester-amakrushi-${i}`)
+        if(!data) {console.error('unable to create user', `tester_${i}@amakrushi.ai`); continue;}
         const userSocket = new UserSocket(data.token,data.user.id)
         walk(userSocket,userCount)
     }

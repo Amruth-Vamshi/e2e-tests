@@ -1,4 +1,6 @@
-export async function createUser(email:string, password:string): Promise<any> {
+import { logger } from "./logger";
+
+export async function createUser(email:string, password:string, index: number): Promise<any> {
     try {
         // FusionAuth API endpoint
         const url = `${process.env.FUSIONAUTH_BASE_URL}/api/user/registration`;
@@ -31,15 +33,15 @@ export async function createUser(email:string, password:string): Promise<any> {
             body: JSON.stringify(userData),
         });
         if (response.ok) {
-            console.log('User created successfully!');
+            logger.logProcess(`User${index}`,`created successfully!`);
             const data = await response.json();
             return data
         } else {
-            console.error('Failed to create user:', response.statusText);
+            logger.logProcess(`User${index}`,`Failed to create User${index}: ${response.statusText}`);
         }
         return false
     } catch (error) {
-        console.error('Error creating user:', error);
+        logger.logProcess(`User${index}`,`Error creating User${index}: ${error}`);
         return false
     }
 }
@@ -110,5 +112,28 @@ export async function loginUser(email:string,password:string) {
       }
     } catch (error) {
       console.error('Error logging in:', error);
+    }
+}
+
+export async function deleteAllUsers(){
+    logger.logProcess('AllUsers','deleting all users....')
+    var myHeaders = new Headers();
+    const apiKey = process.env.FUSIONAUTH_API_KEY || '';
+    myHeaders.append("Authorization", apiKey);
+    myHeaders.append("x-application-id", process.env.APPLICATION_ID || '');
+
+    var requestOptions: RequestInit = {
+        method: 'DELETE',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    try {
+        let result: any = await fetch(`${process.env.FUSIONAUTH_BASE_URL}/api/user/bulk?hardDelete=true&queryString=registrations.applicationId:${process.env.APPLICATION_ID}`, requestOptions)
+        result = await result.json()
+        logger.logProcess('AllUsers','deleted users')
+        logger.logProcess('AllUsers',result.userIds)
+    } catch(error) {
+        logger.logProcess(`AllUsers`,`error ${error}`)
     }
 }

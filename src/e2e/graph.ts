@@ -3,6 +3,7 @@ import UserSocket from "./socket";
 import { v4 as uuid } from 'uuid';
 import { Matrix } from 'ml-matrix';
 import { getEmbedding } from "./utils/ai-tools";
+import { logger } from "./utils/logger";
 
 type TreeNode = string;
 type WeightedEdge = [TreeNode, TreeNode, number];
@@ -13,9 +14,11 @@ interface Graph {
 
 class Parser {
     private diagram: string;
+    public firstNode: string;
 
     constructor(diagram: string) {
         this.diagram = diagram;
+        this.firstNode = this.diagram.split("\n")[1].trim()
     }
 
     private parse(): WeightedEdge[] {
@@ -61,8 +64,10 @@ class Walker {
         let [currentNode, messageFull] = start.split("[");
         let [message, expectedMessage] = messageFull.split(":");
         expectedMessage = expectedMessage.replace("]", "");
-
+        const pathTaken: string[] = []
         while (true) {
+            pathTaken.push(currentNode)
+            logger.logProcess(`User${this.socket.index}`,`: Path taken - ${pathTaken}`)
             message = message.trim();
             expectedMessage = expectedMessage.trim();
             let messageResult: any = {
@@ -70,7 +75,6 @@ class Walker {
                 query: message,
                 expectedResponse: expectedMessage
             }
-            console.log(`${this.socket.deviceId} - current node ${currentNode}`)
             const startTime = new Date().getTime()
             const reply = await this.socket.emitEvent("botRequest", {
                 content: {

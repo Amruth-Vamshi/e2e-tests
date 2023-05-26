@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "webpack",
-    "test:flow-1": "ts-node src/e2e/flow-1.ts",
+    "test:flow": "ts-node src/e2e/flow.ts",
     "test:socket-connections": "ts-node src/e2e/socket-connections.ts"
   },
   "dependencies": {

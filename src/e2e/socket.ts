@@ -1,10 +1,14 @@
 import { Socket, io } from 'socket.io-client';
+import {logger} from '../e2e/utils/logger'
 
 class UserSocket {
   private socket: Socket;
   public deviceId: string;
+  public index: number;
+  public logger: any;
 
-  constructor(apiKey: string, deviceId: string) {
+  constructor(apiKey: string, deviceId: string, index: number) {
+    this.index = index
     this.deviceId = deviceId
     const socketOptions = {
       transportOptions: {
@@ -23,13 +27,13 @@ class UserSocket {
     };
     this.socket = io(process.env.SOCKET_URL || '', socketOptions);
     this.socket.on('connect', () => {
-      console.log(deviceId,'- Connected to WebSocket server');
+      logger.logProcess(`User${this.index}`,` - Connected to WebSocket server`);
     });
     this.socket.on('disconnect', (reason) => {
-      console.log(deviceId,'- Disconnected from WebSocket server:', reason);
+      logger.logProcess(`User${this.index}`,` - Disconnected from WebSocket server: ${reason}`);
     });
     this.socket.on('error', (error) => {
-      console.error(deviceId,'- WebSocket error:', error);
+      logger.logProcess(`User${this.index}`,` - WebSocket error: ${error}`);
     });
   }
 

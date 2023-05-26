@@ -7,9 +7,9 @@ import { createUser, deleteUser } from "./utils/user";
     let userCount = 100
     let sockets = []
     for(let i=1;i<=userCount;i++){
-        let data = await createUser(`tester${i}@amakrushi.ai`,`tester-amakrushi-${i}`)
+        let data = await createUser(`tester${i}@amakrushi.ai`,`tester-amakrushi-${i}`, i)
         if(!data) {console.error('unable to create user', `tester${i}@amakrushi.ai`); continue;}
-        const userSocket = new UserSocket(data.token,data.user.id)
+        const userSocket = new UserSocket(data.token,data.user.id, i)
         userSocket.connect()
         userSocket.mockEvent("mock","mock message")
         sockets.push(userSocket)

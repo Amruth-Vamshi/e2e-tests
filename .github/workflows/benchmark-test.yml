@@ -1,0 +1,46 @@
+name: Run Benchmark Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      graph:
+        description: 'Graph'
+        required: true
+      user-count:
+        description: 'Number of users'
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: |
+          node -e "import { testRunner } from '.src/e2e/testRunner'; testRunner(process.env.INPUT_GRAPH, parseInt(process.env.INPUT_USER_COUNT));"
+        env:
+          INPUT_GRAPH: ${{ github.event.inputs.graph }}
+          INPUT_USER_COUNT: ${{ github.event.inputs.user-count }}
+          FUSIONAUTH_BASE_URL: ${{ secrets.FUSIONAUTH_BASE_URL }}
+          FUSIONAUTH_API_KEY: ${{ secrets.FUSIONAUTH_API_KEY }}
+          SOCKET_URL: ${{ secrets.SOCKET_URL }}
+          AI_TOOLS_BASE_URL: ${{ secrets.AI_TOOLS_BASE_URL }}
+          AI_TOOLS_AUTH_HEADER: ${{ secrets.AI_TOOLS_AUTH_HEADER }}
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+      
+      - name: Upload test result
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-result
+          path: testResult.json

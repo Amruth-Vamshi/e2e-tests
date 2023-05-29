@@ -18,11 +18,11 @@ class Parser {
 
     constructor(diagram: string) {
         this.diagram = diagram;
-        this.firstNode = this.diagram.split("\n")[1].trim()
+        this.firstNode = this.diagram.split("     ")[1].trim()
     }
 
     private parse(): WeightedEdge[] {
-        const edges = this.diagram.split("\n").filter(line => line.includes('--'));
+        const edges = this.diagram.split("     ").filter(line => line.includes('--'));
         let ret_edges: WeightedEdge[] =  edges.map(edge => {
             const [from, toWithWeight] = edge.split('-->');
             const [_, weight, to] = toWithWeight.split('|');

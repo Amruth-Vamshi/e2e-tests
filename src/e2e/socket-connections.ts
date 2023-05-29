@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import UserSocket from "./socket";
-import { createUser, deleteUser } from "./utils/user";
+import { createUser } from "./utils/user";
 
 (async () => {
     let userCount = 100
@@ -17,7 +17,6 @@ import { createUser, deleteUser } from "./utils/user";
     }
     for(let i=0;i<sockets.length;i++){
         let userSocket = sockets[i]
-        deleteUser(userSocket.deviceId)
-        userSocket.close()
+        await userSocket.close()
     }
 })();

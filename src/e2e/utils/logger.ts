@@ -18,9 +18,9 @@ class Logger {
     }
 
     private printLogs() {
-        console.clear(); // Optional: Clear the console before printing the logs
+        console.clear();
         this.logs.forEach((log) => {
-            console.log(`${log.userId}, ${log.log}`);
+            console.log(`${log.userId} ${log.log}`);
         });
     }
 }

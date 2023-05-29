@@ -76,23 +76,35 @@ class Walker {
                 expectedResponse: expectedMessage
             }
             const startTime = new Date().getTime()
-            const reply = await this.socket.emitEvent("botRequest", {
-                content: {
-                    text: message,
-                    userId: this.socket.deviceId,
-                    appId: "AKAI_App_Id",
-                    channel: "AKAI",
-                    from: this.socket.deviceId,
-                    context: null,
-                    accessToken: null,
+
+            const reply = await Promise.race([
+                this.socket.emitEvent("botRequest", {
+                    content: {
+                        text: message,
+                        userId: this.socket.deviceId,
+                        appId: "AKAI_App_Id",
+                        channel: "AKAI",
+                        from: this.socket.deviceId,
+                        context: null,
+                        accessToken: null,
+                        conversationId: this.conversationId
+                    },
+                    to: this.socket.deviceId, 
                     conversationId: this.conversationId
-                },
-                to: this.socket.deviceId, 
-                conversationId: this.conversationId
-              });
+                }),
+                new Promise((resolve, _) => {
+                    setTimeout(() => {
+                        resolve({
+                            content:{
+                                title: `No response received in ${parseInt(process.env.REQUEST_TIMEOUT_DURATION || '60000')/1000} sec`
+                            }
+                        });
+                    }, parseInt(process.env.REQUEST_TIMEOUT_DURATION || '60000'));
+                })
+            ]);
             messageResult['timeTaken'] = new Date().getTime() - startTime
             messageResult['receivedResponse'] = reply.content.title
-            messageResult['similarity'] = await this.checkSimilarity(reply.content.title, message)
+            messageResult['similarity'] =  await this.checkSimilarity(reply.content.title, message)
             messageResult['similarityResult'] = parseFloat(messageResult['similarity']) > 0.97 ? "Positive": "Negative"
             result.pathTaken.push(messageResult)
             const neighbors = this.graph[currentNode];

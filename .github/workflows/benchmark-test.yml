@@ -28,7 +28,7 @@ jobs:
 
       - name: Run tests
         run: |
-          node -e "import { testRunner } from '.src/e2e/testRunner'; testRunner(process.env.INPUT_GRAPH, parseInt(process.env.INPUT_USER_COUNT));"
+          yarn test:flow
         env:
           INPUT_GRAPH: ${{ github.event.inputs.graph }}
           INPUT_USER_COUNT: ${{ github.event.inputs.user-count }}

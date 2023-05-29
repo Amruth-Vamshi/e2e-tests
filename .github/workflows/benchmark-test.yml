@@ -26,11 +26,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Prepare input graph
+        id: prepare-graph
+        run: echo "::set-output name=graph::${{ github.event.inputs.graph }}"
+
       - name: Run tests
         run: |
           yarn test:flow
         env:
-          INPUT_GRAPH: ${{ github.event.inputs.graph }}
+          INPUT_GRAPH: ${{ steps.prepare-graph.outputs.graph }}
           INPUT_USER_COUNT: ${{ github.event.inputs.user-count }}
           FUSIONAUTH_BASE_URL: ${{ secrets.FUSIONAUTH_BASE_URL }}
           FUSIONAUTH_API_KEY: ${{ secrets.FUSIONAUTH_API_KEY }}

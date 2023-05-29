@@ -1,30 +1,22 @@
-export async function getEmbedding(query: string): Promise<any> {
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append(
-      "Authorization",
-      process.env.AI_TOOLS_AUTH_HEADER || ''
-    );
+import axios from 'axios';
 
-    var raw = JSON.stringify({
-      text: [query],
-    });
+export async function getEmbedding(query:string) {
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": process.env.AI_TOOLS_AUTH_HEADER || ''
+  };
 
-    var requestOptions: RequestInit = {
-      method: "POST",
-      headers: myHeaders,
-      body: raw,
-      redirect: "follow",
-    };
+  const data = {
+    text: [query],
+  };
 
-    const embeddings = await fetch(
-      `${process.env.AI_TOOLS_BASE_URL}/t2embedding/openai/remote`,
-      requestOptions
-    )
-      .then((response) => response.json())
-      .then((result) => result)
-      .catch((error) => console.log("error", error));
-    
-    if (embeddings) return embeddings
-    else return []
+  const url = `${process.env.AI_TOOLS_BASE_URL}/t2embedding/openai/remote`;
+
+  try {
+    const response = await axios.post(url, data, { headers });
+    return response.data;
+  } catch (error) {
+    console.log("error", error);
+    return [];
+  }
 }

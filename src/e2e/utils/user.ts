@@ -137,3 +137,23 @@ export async function deleteAllUsers(){
         logger.logProcess(`AllUsers`,`error ${error}`)
     }
 }
+
+export async function deleteUserQueries(userId: String){
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("x-hasura-admin-secret", process.env.HASURA_SECRET || '');
+
+    var requestOptions: RequestInit = {
+        method: 'DELETE',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    try {
+        let result: any = await fetch(`${process.env.HASURA_BASE_URL}/api/rest/query/${userId}`, requestOptions)
+        result = await result.json()
+        console.log(userId, result)
+    } catch(error) {
+        console.log(userId,`error ${error}`)
+    }
+}

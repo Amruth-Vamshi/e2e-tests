@@ -2,12 +2,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 import UserSocket from './socket';
 import Tree from './graph'
-import { createUser, deleteAllUsers } from './utils/user';
-import * as fs from 'fs';
+import { createUser } from './utils/user';
 
-let finalResult: any= {userFlows:[]}
+let finalResult: any= {userFlows:[],errors:[]}
 
-const walk = async (userSocket: UserSocket, userCount: number, diagram:string) => {
+const walk = async (userSocket: UserSocket, diagram:string) => {
     try {
         const parser = new Tree.Parser(diagram)
         const graph = parser.toGraph();
@@ -20,31 +19,13 @@ const walk = async (userSocket: UserSocket, userCount: number, diagram:string) =
         result['totalNegativeResponse'] = result.pathTaken.length - result['totalPositveResponse']
         result['userId'] = userSocket.deviceId
         finalResult.userFlows.push(result)
-        if(finalResult.userFlows.length == userCount) {
-            let additionalParams: any = {
-                totalTimeTaken: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalTimeTaken, 0),
-                totalPositiveResponse: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalPositveResponse, 0),
-                totalNegativeResponse: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalNegativeResponse, 0)
-            }
-            additionalParams['averageTimeTaken'] = additionalParams['totalTimeTaken'] / finalResult.userFlows.length;
-            additionalParams['totalTimeTaken'] = `${additionalParams['totalTimeTaken']/1000} sec`
-            additionalParams['averageTimeTaken'] = `${additionalParams['averageTimeTaken']/1000} sec`
-            finalResult = Object.assign(additionalParams, finalResult);
-            const jsonData = JSON.stringify(finalResult, null, 2);
-            const filePath = './testResult.json';
-            await deleteAllUsers()
-            fs.writeFile(filePath, jsonData, (err) => {
-                if (err) {
-                console.error('Error writing JSON data:', err);
-                return;
-                }
-                console.log('Result written to file:', filePath);
-            });
-        }
-        userSocket.close()
+        await userSocket.close(finalResult)
     } catch(err) {
         console.log(err)
-        userSocket.close()
+        let error: any = {'userId': userSocket.deviceId}
+        error['error'] = `${err}`
+        finalResult.errors.push(error)
+        await userSocket.close(finalResult)
     }
 }
 
@@ -58,6 +39,6 @@ export async function testRunner (diagram: string,userCount: number){
 
     userData.forEach((user,index)=>{
         const userSocket = new UserSocket(user.token,user.id,index+1)
-        walk(userSocket,userCount,diagram)
+        walk(userSocket,diagram)
     })
 };

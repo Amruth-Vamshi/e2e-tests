@@ -1,5 +1,7 @@
 import { Socket, io } from 'socket.io-client';
 import {logger} from '../e2e/utils/logger'
+import { deleteUser, deleteUserQueries } from './utils/user';
+import * as fs from 'fs';
 
 class UserSocket {
   private socket: Socket;
@@ -27,13 +29,13 @@ class UserSocket {
     };
     this.socket = io(process.env.SOCKET_URL || '', socketOptions);
     this.socket.on('connect', () => {
-      logger.logProcess(`User${this.index}`,` - Connected to WebSocket server`);
+      logger.logProcess(`User${this.index}`,`: Connected to WebSocket server`);
     });
     this.socket.on('disconnect', (reason) => {
-      logger.logProcess(`User${this.index}`,` - Disconnected from WebSocket server: ${reason}`);
+      logger.logProcess(`User${this.index}`,`: ${this.deviceId} - Disconnected from WebSocket server: ${reason}`);
     });
     this.socket.on('error', (error) => {
-      logger.logProcess(`User${this.index}`,` - WebSocket error: ${error}`);
+      logger.logProcess(`User${this.index}`,`: WebSocket error: ${error}`);
     });
   }
 
@@ -71,7 +73,29 @@ class UserSocket {
     });
   }
 
-  close(): void {
+  async close(finalResult: any = null): Promise<void> {
+    if(finalResult) {
+      let additionalParams: any = {
+        totalTimeTaken: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalTimeTaken, 0),
+        totalPositiveResponse: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalPositveResponse, 0),
+        totalNegativeResponse: finalResult.userFlows.reduce((sum: number, path: any) => sum + path.totalNegativeResponse, 0)
+      }
+      additionalParams['averageTimeTaken'] = additionalParams['totalTimeTaken'] / finalResult.userFlows.length;
+      additionalParams['totalTimeTaken'] = `${additionalParams['totalTimeTaken']/1000} sec`
+      additionalParams['averageTimeTaken'] = `${additionalParams['averageTimeTaken']/1000} sec`
+      finalResult = Object.assign(additionalParams, finalResult);
+      const jsonData = JSON.stringify(finalResult, null, 2);
+      const filePath = './testResult.json';
+      fs.writeFile(filePath, jsonData, (err) => {
+          if (err) {
+          console.error('Error writing JSON data:', err);
+          return;
+          }
+          console.log('Result written to file:', filePath);
+      });
+    }
+    await deleteUser(this.deviceId)
+    await deleteUserQueries(this.deviceId)
     this.socket.close();
   }
 }

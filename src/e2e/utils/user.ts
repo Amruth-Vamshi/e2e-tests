@@ -1,159 +1,127 @@
 import { logger } from "./logger";
+import axios, {AxiosRequestConfig} from 'axios';
 
-export async function createUser(email:string, password:string, index: number): Promise<any> {
-    try {
-        // FusionAuth API endpoint
-        const url = `${process.env.FUSIONAUTH_BASE_URL}/api/user/registration`;
-    
-        // FusionAuth API key
-        const apiKey = process.env.FUSIONAUTH_API_KEY || '';
-    
-        // Request headers
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': apiKey,
-        };
-    
-        // User data
-        const userData = {
-            registration: {
-                applicationId: process.env.APPLICATION_ID
-            },
-            user: {
-                email,
-                password,
-            }
-        // Add other user data fields as needed
-        };
-    
-        // Create user request
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(userData),
-        });
-        if (response.ok) {
-            logger.logProcess(`User${index}`,`created successfully!`);
-            const data = await response.json();
-            return data
-        } else {
-            logger.logProcess(`User${index}`,`Failed to create User${index}: ${response.statusText}`);
-        }
-        return false
-    } catch (error) {
-        logger.logProcess(`User${index}`,`Error creating User${index}: ${error}`);
-        return false
+export async function createUser(email: string, password: string, index: number): Promise<any> {
+  try {
+    const url = `${process.env.FUSIONAUTH_BASE_URL}/api/user/registration`;
+    const apiKey = process.env.FUSIONAUTH_API_KEY || '';
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': apiKey,
+    };
+
+    const userData = {
+      registration: {
+        applicationId: process.env.APPLICATION_ID
+      },
+      user: {
+        email,
+        password,
+      }
+    };
+
+    const response = await axios.post(url, userData, { headers });
+
+    if (response.status === 200) {
+      logger.logProcess(`User${index}`, `created successfully!`);
+      return response.data;
+    } else {
+      logger.logProcess(`User${index}`, `Failed to create User${index}: ${response.statusText}`);
+      return false;
     }
+  } catch (error) {
+    logger.logProcess(`User${index}`, `Error creating User${index}: ${error}`);
+    return false;
+  }
 }
 
 export async function deleteUser(userId: string) {
-    try {
-      // FusionAuth API endpoint
-      const url = `${process.env.FUSIONAUTH_BASE_URL}/api/user/${userId}?hardDelete=true`;
-  
-      // FusionAuth API key
-      const apiKey = process.env.FUSIONAUTH_API_KEY || '';
-  
-      // Request headers
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': apiKey,
-      };
-  
-      // Delete user request
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: headers,
-      });
-  
-      if (response.ok) {
-        console.log('User deleted successfully!');
-      } else {
-        console.error('Failed to delete user:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    }
-}
-
-export async function loginUser(email:string,password:string) {
-    try {
-      // FusionAuth API endpoint
-      const url = `${process.env.FUSIONAUTH_BASE_URL}/api/login`;
-  
-      // FusionAuth API key
-      const apiKey = process.env.FUSIONAUTH_API_KEY || '';
-  
-      // Request headers
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': apiKey,
-      };
-  
-      // User credentials
-      const credentials = {
-        loginId: email,
-        password
-      };
-  
-      // User login request
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(credentials),
-      });
-  
-      if (response.ok) {
-        console.log('User logged in successfully!');
-        const data = await response.json();
-        return data
-      } else {
-        console.error('Failed to log in:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error logging in:', error);
-    }
-}
-
-export async function deleteAllUsers(){
-    logger.logProcess('AllUsers','deleting all users....')
-    var myHeaders = new Headers();
+  try {
+    const url = `${process.env.FUSIONAUTH_BASE_URL}/api/user/${userId}?hardDelete=true`;
     const apiKey = process.env.FUSIONAUTH_API_KEY || '';
-    myHeaders.append("Authorization", apiKey);
-    myHeaders.append("x-application-id", process.env.APPLICATION_ID || '');
 
-    var requestOptions: RequestInit = {
-        method: 'DELETE',
-        headers: myHeaders,
-        redirect: 'follow'
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': apiKey,
     };
 
-    try {
-        let result: any = await fetch(`${process.env.FUSIONAUTH_BASE_URL}/api/user/bulk?hardDelete=true&queryString=registrations.applicationId:${process.env.APPLICATION_ID}`, requestOptions)
-        result = await result.json()
-        logger.logProcess('AllUsers','deleted users')
-        logger.logProcess('AllUsers',result.userIds)
-    } catch(error) {
-        logger.logProcess(`AllUsers`,`error ${error}`)
-    }
+    await axios.delete(url, { headers });
+
+    console.log('User deleted successfully!');
+  } catch (error) {
+    console.error('Error deleting user:', error);
+  }
 }
 
-export async function deleteUserQueries(userId: String){
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("x-hasura-admin-secret", process.env.HASURA_SECRET || '');
+export async function loginUser(email: string, password: string) {
+  try {
+    const url = `${process.env.FUSIONAUTH_BASE_URL}/api/login`;
+    const apiKey = process.env.FUSIONAUTH_API_KEY || '';
 
-    var requestOptions: RequestInit = {
-        method: 'DELETE',
-        headers: myHeaders,
-        redirect: 'follow'
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': apiKey,
     };
 
-    try {
-        let result: any = await fetch(`${process.env.HASURA_BASE_URL}/api/rest/query/${userId}`, requestOptions)
-        result = await result.json()
-        console.log(userId, result)
-    } catch(error) {
-        console.log(userId,`error ${error}`)
+    const credentials = {
+      loginId: email,
+      password
+    };
+
+    const response = await axios.post(url, credentials, { headers });
+
+    if (response.status === 200) {
+      console.log('User logged in successfully!');
+      return response.data;
+    } else {
+      console.error('Failed to log in:', response.statusText);
     }
+  } catch (error) {
+    console.error('Error logging in:', error);
+  }
+}
+
+export async function deleteAllUsers() {
+  logger.logProcess('AllUsers', 'deleting all users....');
+  const apiKey = process.env.FUSIONAUTH_API_KEY || '';
+  const headers = {
+    'Authorization': apiKey,
+    'x-application-id': process.env.APPLICATION_ID || ''
+  };
+
+  const requestOptions: AxiosRequestConfig = {
+    method: 'DELETE',
+    headers: headers,
+    url: `${process.env.FUSIONAUTH_BASE_URL}/api/user/bulk?hardDelete=true&queryString=registrations.applicationId:${process.env.APPLICATION_ID}`
+  };
+
+  try {
+    const response = await axios(requestOptions);
+    const result = response.data;
+    logger.logProcess('AllUsers', 'deleted users');
+    logger.logProcess('AllUsers', result.userIds);
+  } catch (error) {
+    logger.logProcess('AllUsers', `error ${error}`);
+  }
+}
+
+export async function deleteUserQueries(userId: string) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-hasura-admin-secret': process.env.HASURA_SECRET || ''
+  };
+
+  const requestOptions: AxiosRequestConfig = {
+    method: 'DELETE',
+    headers: headers,
+    url: `${process.env.HASURA_BASE_URL}/api/rest/query/${userId}`
+  };
+
+  try {
+    const response = await axios(requestOptions);
+    console.log(userId, response.data);
+  } catch (error) {
+    console.log(userId, `error ${error}`);
+  }
 }

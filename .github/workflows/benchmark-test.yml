@@ -42,6 +42,9 @@ jobs:
           AI_TOOLS_BASE_URL: ${{ secrets.AI_TOOLS_BASE_URL }}
           AI_TOOLS_AUTH_HEADER: ${{ secrets.AI_TOOLS_AUTH_HEADER }}
           APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+          REQUEST_TIMEOUT_DURATION: ${{ secrets.REQUEST_TIMEOUT_DURATION }}
+          HASURA_SECRET: ${{ secrets.HASURA_SECRET }}
+          HASURA_BASE_URL: ${{ secrets.HASURA_BASE_URL }}
       
       - name: Upload test result
         uses: actions/upload-artifact@v2
